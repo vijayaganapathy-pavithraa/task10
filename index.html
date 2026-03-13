@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Task 10 — Fuel Engines</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Share Tech Mono',monospace;background:#0a0e1a;color:#c8f0d0;min-height:100vh;padding:2rem 1rem;display:flex;align-items:center;justify-content:center;}
+.container{max-width:560px;width:100%;background:#0d1520;border:1px solid #2a4a3a;border-radius:12px;padding:2rem;}
+.task-num{font-size:.65rem;color:#3a5a4a;letter-spacing:2px;margin-bottom:.4rem;}
+.task-title{font-family:'Orbitron',monospace;color:#e8ff6b;font-size:1rem;margin-bottom:.2rem;letter-spacing:2px;}
+.task-room{font-size:.65rem;color:#3a5a4a;letter-spacing:2px;margin-bottom:1rem;}
+.task-desc{font-size:.75rem;color:#8ab09a;line-height:1.7;margin-bottom:1.4rem;}
+.game-frame{border:1px solid #1a3a2a;border-radius:8px;background:#060d14;padding:1rem;font-size:.75rem;}
+.result-banner{display:none;margin-top:.8rem;padding:.6rem 1rem;border-radius:6px;font-family:'Orbitron',monospace;font-size:.75rem;text-align:center;letter-spacing:1px;}
+.result-banner.win{background:#0a2a1a;color:#2ecc71;border:1px solid #0a4a2a;display:block;}
+.result-banner.lose{background:#2a0a0a;color:#e74c3c;border:1px solid #4a1a1a;display:block;}
+.restart-btn{display:block;width:100%;margin-top:1rem;padding:.7rem;background:#1a3a2a;color:#2ecc71;border:1px solid #2ecc71;border-radius:6px;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;letter-spacing:2px;cursor:pointer;text-align:center;}
+.restart-btn:hover{background:#2ecc71;color:#0a0e1a;}
+#mazeCanvas{display:block;margin:0 auto;border-radius:6px;border:1px solid #1a3a2a;}
+.maze-controls{display:flex;justify-content:center;gap:.5rem;margin-top:.5rem;}
+.maze-btn{padding:.4rem .7rem;background:#0a1520;border:1px solid #1a3a2a;color:#c8f0d0;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.75rem;}
+.maze-btn:hover{border-color:#e8ff6b;color:#e8ff6b;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="task-num">TASK 10 · HARD</div>
+  <div class="task-title">☄️ Fuel Engines</div>
+  <div class="task-room">LOWER ENGINE — Floor 1 · Fuel Bay</div>
+  <div class="task-desc">Use the arrow buttons (or keyboard arrow keys) to guide the fuel canister (☄️) through the corridor to the dock (🔋). Reach the goal without hitting the walls!</div>
+  <div class="game-frame" id="gameFrame"></div>
+  <div class="result-banner" id="resultBanner"></div>
+  <button class="restart-btn" id="restartBtn" style="display:none" onclick="start()">↺ RESTART TASK</button>
+</div>
+<script>
+let mazeKeyHandler=null;
+function taskComplete(){
+  document.getElementById('resultBanner').className='result-banner win';
+  document.getElementById('resultBanner').textContent='✔ TASK COMPLETE — GOOD WORK, CREWMATE';
+  document.getElementById('restartBtn').style.display='block';
+  if(mazeKeyHandler){document.removeEventListener('keydown',mazeKeyHandler);mazeKeyHandler=null;}
+}
+function start(){
+  if(mazeKeyHandler){document.removeEventListener('keydown',mazeKeyHandler);mazeKeyHandler=null;}
+  document.getElementById('resultBanner').className='result-banner';
+  document.getElementById('resultBanner').textContent='';
+  document.getElementById('restartBtn').style.display='none';
+  const frame=document.getElementById('gameFrame');
+  frame.innerHTML=`<canvas id="mazeCanvas" width="280" height="280"></canvas>
+    <div class="maze-controls">
+      <button class="maze-btn" onclick="mazeMove(0,-1)">▲</button>
+      <button class="maze-btn" onclick="mazeMove(-1,0)">◀</button>
+      <button class="maze-btn" onclick="mazeMove(0,1)">▼</button>
+      <button class="maze-btn" onclick="mazeMove(1,0)">▶</button>
+    </div>
+    <div style="font-size:.65rem;color:#3a5a4a;margin-top:.4rem;text-align:center;letter-spacing:1px;">Use buttons or arrow keys to navigate ☄️ to 🔋</div>`;
+  const maze=[[0,0,1,0,0,0,0],[1,0,1,0,1,1,0],[0,0,0,0,0,1,0],[0,1,1,1,0,1,0],[0,0,0,1,0,0,0],[1,1,0,1,1,1,0],[0,0,0,0,0,0,0]];
+  const ROWS=7,COLS=7,CELL=40;
+  let px=0,py=0;const gx=6,gy=6;let done=false;
+  const canvas=document.getElementById('mazeCanvas');
+  const ctx=canvas.getContext('2d');
+  function draw(){
+    ctx.clearRect(0,0,280,280);ctx.fillStyle='#060d14';ctx.fillRect(0,0,280,280);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(maze[r][c]===1){ctx.fillStyle='#1a3a2a';ctx.fillRect(c*CELL,r*CELL,CELL,CELL);ctx.strokeStyle='#0a2a1a';ctx.lineWidth=1;ctx.strokeRect(c*CELL,r*CELL,CELL,CELL);}
+      else{ctx.fillStyle='#0a1520';ctx.fillRect(c*CELL,r*CELL,CELL,CELL);}
+    }
+    ctx.font='22px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🔋',gx*CELL+CELL/2,gy*CELL+CELL/2);
+    ctx.fillText('☄️',px*CELL+CELL/2,py*CELL+CELL/2);
+  }
+  window.mazeMove=function(dx,dy){
+    if(done)return;const nx=px+dx,ny=py+dy;
+    if(nx<0||nx>=COLS||ny<0||ny>=ROWS)return;if(maze[ny][nx]===1)return;
+    px=nx;py=ny;draw();if(px===gx&&py===gy){done=true;taskComplete();}
+  };
+  mazeKeyHandler=function(e){
+    const map={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};
+    if(map[e.key]){e.preventDefault();window.mazeMove(...map[e.key]);}
+  };
+  document.addEventListener('keydown',mazeKeyHandler);
+  draw();
+}
+start();
+</script>
+</body>
+</html>
